@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	defaultThreshold     uint8 = 132
-	defaultGrayThreshold uint8 = 12
-	defaultDotSize             = 3
-	defaultGrayColor           = 128
+	defaultThreshold     uint8 = 185
+	defaultGrayThreshold uint8 = 54
+	defaultDotSize             = 2
+	defaultGrayColor           = 145
 )
 
-var bayerMatrix = [][]int{
+var thresholdMap = [][]int{
 	{1, 9, 3, 11},
 	{13, 5, 15, 7},
 	{4, 12, 2, 10},
@@ -151,16 +151,13 @@ func (h *halftone) Run() error {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y += h.options.dotSize {
 		for x := bounds.Min.X; x < bounds.Max.X; x += h.options.dotSize {
-			// Calculate the average intensity using Bayer matrix
 			sum := 0
 			count := 0
 
-			// Iterate over the pixels in the dot area
 			for j := 0; j < h.options.dotSize; j++ {
 				for i := 0; i < h.options.dotSize; i++ {
-					// Get the  h.options.dotSize value of the pixel
 					px := gray.GrayAt(x+i, y+j)
-					thresholdValue := bayerMatrix[i][j] * 16
+					thresholdValue := thresholdMap[i][j] * 16
 					if int(px.Y) > thresholdValue {
 						sum += 255
 					}
@@ -168,10 +165,8 @@ func (h *halftone) Run() error {
 				}
 			}
 
-			// Calculate the average intensity
 			averageIntensity := uint8(sum / count)
 
-			// Determine if the dot should be black or white based on the average intensity
 			var dotColor color.Color
 			if averageIntensity > h.options.threshold {
 				dotColor = color.White
